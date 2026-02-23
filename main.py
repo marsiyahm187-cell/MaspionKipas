@@ -1,38 +1,38 @@
 import os
 import telebot
-from openai import OpenAI
+from groq import Groq
 
-# Mengambil variabel dari Railway
+# Ambil variabel dari Railway
 BOT_TOKEN = os.environ.get('TELEGRAM_TOKEN')
-OPENAI_KEY = os.environ.get('OPENAI_API_KEY')
+GROQ_KEY = os.environ.get('GROQ_API_KEY')
 
-# Inisialisasi Bot dan OpenAI
+# Inisialisasi Bot dan Groq
 bot = telebot.TeleBot(BOT_TOKEN)
-client = OpenAI(api_key=OPENAI_KEY)
+client = Groq(api_key=GROQ_KEY)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Halo! Sekarang saya menggunakan otak ChatGPT. Silakan tanya apa saja!")
+    bot.reply_to(message, "Halo! Saya bot AI yang didukung oleh Groq. Respon saya sangat cepat, silakan coba tanya apa saja!")
 
 @bot.message_handler(func=lambda message: True)
-def chat_with_gpt(message):
+def chat_with_groq(message):
     try:
-        # Menampilkan status 'typing'
         bot.send_chat_action(message.chat.id, 'typing')
         
-        # Permintaan ke ChatGPT (Model gpt-3.5-turbo atau gpt-4o-mini)
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": message.text}]
+        # Permintaan ke Groq (Menggunakan model Llama 3)
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "user", "content": message.text}
+            ],
         )
         
-        # Mengambil teks jawaban
-        answer = response.choices[0].message.content
+        answer = completion.choices[0].message.content
         bot.reply_to(message, answer)
         
     except Exception as e:
-        bot.reply_to(message, f"Ada kendala: {str(e)}")
+        bot.reply_to(message, f"Wah, ada kendala teknis: {str(e)}")
 
 if __name__ == "__main__":
-    print("Bot ChatGPT menyala...")
+    print("Bot Groq menyala...")
     bot.infinity_polling(skip_pending=True)
